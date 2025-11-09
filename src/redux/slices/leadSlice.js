@@ -1,0 +1,40 @@
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import api from '../../services/api';
+
+const initialState = {
+  leads: [],
+  loading: false,
+  error: null,
+};
+
+export const fetchLeads = createAsyncThunk(
+  'leads/fetchLeads',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get('/leads');
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || 'Failed to fetch leads');
+    }
+  }
+);
+
+const leadSlice = createSlice({
+  name: 'leads',
+  initialState,
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchLeads.pending, (state) => { state.loading = true; })
+      .addCase(fetchLeads.fulfilled, (state, action) => {
+        state.loading = false;
+        state.leads = action.payload;
+      })
+      .addCase(fetchLeads.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
+  },
+});
+
+export default leadSlice.reducer;
